@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const { initializeApp, cert } = require('firebase-admin/app');
 const { getFirestore, Timestamp } = require('firebase-admin/firestore');
 
@@ -12,6 +13,11 @@ const db = getFirestore();
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Sirve index.html en la raíz
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 app.post('/api/reservar', async (req, res) => {
   try {
