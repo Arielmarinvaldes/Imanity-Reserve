@@ -5,7 +5,7 @@ const { initializeApp, cert } = require('firebase-admin/app');
 const { getFirestore, Timestamp } = require('firebase-admin/firestore');
 
 // Carga las credenciales desde una variable de entorno (recomendado para Render)
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+const serviceAccount = require('./datos-imanity-reserve-firebase-adminsdk-fbsvc-24c5c6c8f2.json');
 
 initializeApp({ credential: cert(serviceAccount) });
 const db = getFirestore();
