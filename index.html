@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Reserva Restaurante</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%);
+      font-family: 'Montserrat', Arial, sans-serif;
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      background: #fff;
+      padding: 2.5rem 2rem;
+      border-radius: 18px;
+      box-shadow: 0 8px 32px rgba(60, 72, 88, 0.15);
+      max-width: 400px;
+      width: 100%;
+    }
+    h1 {
+      text-align: center;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 1.5rem;
+      letter-spacing: 1px;
+    }
+    form label {
+      display: block;
+      margin-bottom: 1rem;
+      color: #4a5568;
+      font-size: 1rem;
+    }
+    input[type="text"],
+    input[type="number"],
+    input[type="datetime-local"] {
+      width: 100%;
+      padding: 0.7rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 1rem;
+      margin-top: 0.3rem;
+      background: #f7fafc;
+      transition: border 0.2s;
+    }
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    input[type="datetime-local"]:focus {
+      border-color: #7f9cf5;
+      outline: none;
+    }
+    input[type="checkbox"] {
+      margin-right: 0.5rem;
+      accent-color: #7f9cf5;
+    }
+    button {
+      width: 100%;
+      padding: 0.9rem;
+      background: linear-gradient(90deg, #7f9cf5 0%, #4fd1c5 100%);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 1rem;
+      box-shadow: 0 2px 8px rgba(127, 156, 245, 0.08);
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: linear-gradient(90deg, #4fd1c5 0%, #7f9cf5 100%);
+    }
+    #resultado {
+      margin-top: 1.5rem;
+      text-align: center;
+      font-size: 1.05rem;
+      font-weight: 500;
+      color: #38a169;
+      min-height: 24px;
+    }
+    #resultado.error {
+      color: #e53e3e;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Reserva</h1>
+    <form id="reservaForm">
+      <label>Nombre:
+        <input type="text" name="guestName" required placeholder="Tu nombre completo">
+      </label>
+      <label>Número de personas:
+        <input type="number" name="partySize" required min="1" max="20" placeholder="Ej: 2">
+      </label>
+      <label>Fecha y hora:
+        <input type="datetime-local" name="reservationDateTime" required>
+      </label>
+      <label>Teléfono:
+        <input type="text" name="guestPhone">
+      </label>
+      <label>
+        <input type="checkbox" name="needsHighChair"> Trona para bebé
+      </label>
+      <button type="submit">Reservar</button>
+    </form>
+    <div id="resultado"></div>
+  </div>
+  <script>
+    document.getElementById('reservaForm').onsubmit = async function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const data = {
+        guestName: form.guestName.value,
+        partySize: form.partySize.value,
+        reservationDateTime: form.reservationDateTime.value,
+        guestPhone: form.guestPhone.value,
+        needsHighChair: form.needsHighChair.checked
+      };
+      const res = await fetch('http://localhost:3000/api/reservar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      const resultadoDiv = document.getElementById('resultado');
+      if(result.success) {
+        resultadoDiv.className = '';
+        resultadoDiv.innerText = '✅ Reserva creada';
+        form.reset();
+      } else {
+        resultadoDiv.className = 'error';
+        resultadoDiv.innerText = '❌ Error: ' + result.error;
+      }
+    };
+  </script>
+</body>
+</html>
