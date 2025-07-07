@@ -2,7 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const { initializeApp, cert } = require('firebase-admin/app');
 const { getFirestore, Timestamp } = require('firebase-admin/firestore');
-const serviceAccount = require('./datos-imanity-reserve-firebase-adminsdk-fbsvc-24c5c6c8f2.json'); // Cambia la ruta
+
+// Carga las credenciales desde una variable de entorno (recomendado para Render)
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
 
 initializeApp({ credential: cert(serviceAccount) });
 const db = getFirestore();
@@ -30,4 +32,6 @@ app.post('/api/reservar', async (req, res) => {
   }
 });
 
-app.listen(3000, () => console.log('API listening on port 3000'));
+// Usa el puerto asignado por Render o 3000 por defecto
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`API listening on port ${PORT}`));
