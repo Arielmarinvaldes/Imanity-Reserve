@@ -5,15 +5,6 @@ const path = require('path');
 const { initializeApp, cert } = require('firebase-admin/app');
 const { getFirestore, Timestamp } = require('firebase-admin/firestore');
 
-
-// Rate limiting: máximo 100 peticiones por IP cada 15 minutos
-app.use(rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: { success: false, error: "Demasiadas peticiones, intenta más tarde." }
-}));
-
-
 // Carga las credenciales de tu archivo de cuenta de servicio
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
 
@@ -25,7 +16,16 @@ initializeApp({
 // Obtén referencia a Firestore
 const db = getFirestore();
 
+// Inicializa Express ANTES de usar app.use
 const app = express();
+
+// Rate limiting: máximo 100 peticiones por IP cada 15 minutos
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { success: false, error: "Demasiadas peticiones, intenta más tarde." }
+}));
+
 // Solo permite peticiones desde tu dominio de Render
 app.use(cors({ origin: 'https://imanity-reserve.onrender.com' }));
 app.use(express.json());
@@ -76,7 +76,7 @@ async function createWebReservation(reservationData) {
       .split(' ')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
-      
+
     const newReservation = {
       guestName,
       partySize: parseInt(partySize, 10),
