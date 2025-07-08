@@ -36,7 +36,12 @@ app.get('/', (req, res) => {
 });
 
 // --- Función para crear una nueva reserva ---
-async function createWebReservation(reservationData) {
+async function createWebReservation(restaurantId, reservationData) {
+  if (!restaurantId) {
+    console.error("Error: Restaurant ID is required.");
+    return { success: false, error: "Restaurant ID is missing." };
+  }
+
   try {
     let { guestName, partySize, reservationDateTime, guestPhone, needsHighChair } = reservationData;
 
@@ -49,9 +54,6 @@ async function createWebReservation(reservationData) {
     }
     if (!reservationDateTime) {
       throw new Error("La fecha de reserva es obligatoria.");
-    }
-    if (!guestPhone) {
-      throw new Error("El teléfono es obligatorio.");
     }
 
     // Validar longitud y formato del nombre (solo letras y espacios, 2-40 caracteres)
@@ -69,8 +71,7 @@ async function createWebReservation(reservationData) {
       throw new Error("El número de personas debe ser un número mayor que 0 y menor que 30.");
     }
 
-    // Validar teléfono: solo números, 7-15 dígitos
-    if (!/^\d{7,15}$/.test(guestPhone)) {
+    if (guestPhone && !/^\d{7,15}$/.test(guestPhone)) {
       throw new Error("El teléfono debe contener solo números y tener entre 7 y 15 dígitos.");
     }
 
@@ -90,14 +91,15 @@ async function createWebReservation(reservationData) {
       guestName,
       partySize: parseInt(partySize, 10),
       dateTime: Timestamp.fromDate(dateObj),
-      guestPhone,
+      guestPhone: guestPhone || "",
       needsHighChair: needsHighChair || false,
       status: "Upcoming",
       tableId: ""
     };
 
-    const docRef = await db.collection('reservations').add(newReservation);
-    console.log('Reservation created with ID: ', docRef.id);
+    const reservationPath = `restaurants/${restaurantId}/reservations`;
+    const docRef = await db.collection(reservationPath).add(newReservation);
+    console.log(`Reservation created with ID: ${docRef.id} for restaurant: ${restaurantId}`);
     return { success: true, reservationId: docRef.id };
 
   } catch (error) {
