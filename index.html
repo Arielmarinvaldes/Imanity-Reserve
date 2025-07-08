@@ -101,7 +101,7 @@
         <input type="datetime-local" name="reservationDateTime" required>
       </label>
       <label>Teléfono:
-        <input type="text" name="guestPhone">
+        <input type="text" name="guestPhone" required placeholder="Tu teléfono">
       </label>
       <label>
         <input type="checkbox" name="needsHighChair"> Trona para bebé
@@ -111,9 +111,41 @@
     <div id="resultado"></div>
   </div>
   <script>
+    // Bloquear números en el campo Nombre
+    document.querySelector('input[name="guestName"]').addEventListener('keydown', function(e) {
+      if (e.key >= '0' && e.key <= '9') {
+        e.preventDefault();
+      }
+    });
+
     document.getElementById('reservaForm').onsubmit = async function(e) {
       e.preventDefault();
       const form = e.target;
+      const resultadoDiv = document.getElementById('resultado');
+
+      // Validar nombre solo letras y espacios
+      const nombre = form.guestName.value.trim();
+      if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(nombre)) {
+        resultadoDiv.className = 'error';
+        resultadoDiv.innerText = '❌ El nombre solo puede contener letras y espacios.';
+        setTimeout(() => {
+          resultadoDiv.innerText = '';
+          resultadoDiv.className = '';
+        }, 2000);
+        return;
+      }
+
+      // Validar teléfono
+      if (!form.guestPhone.value.trim()) {
+        resultadoDiv.className = 'error';
+        resultadoDiv.innerText = '❌ Debes ingresar tu número de teléfono.';
+        setTimeout(() => {
+          resultadoDiv.innerText = '';
+          resultadoDiv.className = '';
+        }, 2000);
+        return;
+      }
+
       const data = {
         guestName: form.guestName.value,
         partySize: form.partySize.value,
@@ -129,7 +161,6 @@
       });
 
       const result = await res.json();
-      const resultadoDiv = document.getElementById('resultado');
 
       if(result.success) {
         resultadoDiv.className = '';
