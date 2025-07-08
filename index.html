@@ -199,7 +199,10 @@
 
       const res = await fetch('/api/reservar', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': '&EHF1xPd9%QrRh$#Zb!e7UjS2M%2!Fukd8b@U$9r8n1bG*5D&83V*Z!u7dr1rQTJ'
+        },
         body: JSON.stringify(data)
       });
 

@@ -8,34 +8,38 @@ const { getFirestore, Timestamp } = require('firebase-admin/firestore');
 // Carga las credenciales de tu archivo de cuenta de servicio
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
 
-// Inicializa la app de Firebase
 initializeApp({
   credential: cert(serviceAccount)
 });
 
-// Obtén referencia a Firestore
 const db = getFirestore();
 
-// Inicializa Express ANTES de usar app.use
 const app = express();
 
-// Rate limiting: máximo 100 peticiones por IP cada 15 minutos
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
   message: { success: false, error: "Demasiadas peticiones, intenta más tarde." }
 }));
 
-// Solo permite peticiones desde tu dominio de Render
 app.use(cors({ origin: 'https://imanity-reserve.onrender.com' }));
 app.use(express.json());
+
+// Middleware de API Key
+app.use((req, res, next) => {
+  const apiKey = req.headers['x-api-key'];
+  if (!apiKey || apiKey !== process.env.API_KEY_SECRET) {
+    return res.status(403).json({ success: false, error: "Forbidden" });
+  }
+  next();
+});
 
 // Sirve index.html en la raíz
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// --- Función para crear una nueva reserva ---
+// Función para crear nueva reserva
 async function createWebReservation(restaurantId, reservationData) {
   if (!restaurantId) {
     console.error("Error: Restaurant ID is required.");
@@ -45,7 +49,6 @@ async function createWebReservation(restaurantId, reservationData) {
   try {
     let { guestName, partySize, reservationDateTime, guestPhone, needsHighChair } = reservationData;
 
-    // Validar campos obligatorios
     if (!guestName) {
       throw new Error("El nombre es obligatorio.");
     }
@@ -56,7 +59,6 @@ async function createWebReservation(restaurantId, reservationData) {
       throw new Error("La fecha de reserva es obligatoria.");
     }
 
-    // Validar longitud y formato del nombre (solo letras y espacios, 2-40 caracteres)
     if (
       typeof guestName !== "string" ||
       guestName.length < 2 ||
@@ -66,7 +68,6 @@ async function createWebReservation(restaurantId, reservationData) {
       throw new Error("El nombre debe tener entre 2 y 40 letras y solo puede contener letras y espacios.");
     }
 
-    // Validar que partySize sea número y rango razonable
     if (isNaN(partySize) || partySize <= 0 || partySize > 30) {
       throw new Error("El número de personas debe ser un número mayor que 0 y menor que 30.");
     }
@@ -75,13 +76,11 @@ async function createWebReservation(restaurantId, reservationData) {
       throw new Error("El teléfono debe contener solo números y tener entre 7 y 15 dígitos.");
     }
 
-    // Validar fecha: formato válido y futura
     const dateObj = new Date(reservationDateTime);
     if (isNaN(dateObj.getTime()) || dateObj < new Date()) {
       throw new Error("La fecha de reserva no es válida o es anterior a hoy.");
     }
 
-    // Formatear el nombre: primera letra mayúscula, resto minúsculas
     guestName = guestName
       .split(' ')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -104,7 +103,6 @@ async function createWebReservation(restaurantId, reservationData) {
 
   } catch (error) {
     console.error("Error creating reservation: ", error);
-    // Solo mostramos un mensaje genérico al usuario
     return { success: false, error: "Error al crear la reserva. Inténtalo de nuevo." };
   }
 }
@@ -124,6 +122,5 @@ app.post('/api/reservar', async (req, res) => {
   }
 });
 
-// Usa el puerto asignado por Render o 3000 por defecto
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`API listening on port ${PORT}`));
