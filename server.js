@@ -4,10 +4,15 @@ const path = require('path');
 const { initializeApp, cert } = require('firebase-admin/app');
 const { getFirestore, Timestamp } = require('firebase-admin/firestore');
 
-// Carga las credenciales desde una variable de entorno (recomendado para Render)
-const serviceAccount = require('./datos-imanity-reserve-firebase-adminsdk-fbsvc-24c5c6c8f2.json');
+// Carga las credenciales de tu archivo de cuenta de servicio
+// const serviceAccount = require('./datos-imanity-reserve-firebase-adminsdk-fbsvc-4f33db07ca.json');
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+// Inicializa la app de Firebase
+initializeApp({
+  credential: cert(serviceAccount)
+});
 
-initializeApp({ credential: cert(serviceAccount) });
+// Obtén referencia a Firestore
 const db = getFirestore();
 
 const app = express();
@@ -19,11 +24,13 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.post('/api/reservar', async (req, res) => {
+// --- Función para crear una nueva reserva ---
+async function createWebReservation(reservationData) {
   try {
-    const { guestName, partySize, reservationDateTime, guestPhone, needsHighChair } = req.body;
+    const { guestName, partySize, reservationDateTime, guestPhone, needsHighChair } = reservationData;
+
     const newReservation = {
-      guestName,
+      guestName: guestName,
       partySize: parseInt(partySize, 10),
       dateTime: Timestamp.fromDate(new Date(reservationDateTime)),
       guestPhone: guestPhone || "",
@@ -31,10 +38,24 @@ app.post('/api/reservar', async (req, res) => {
       status: "Upcoming",
       tableId: ""
     };
+
     const docRef = await db.collection('reservations').add(newReservation);
-    res.json({ success: true, reservationId: docRef.id });
+    console.log('Reservation created with ID: ', docRef.id);
+    return { success: true, reservationId: docRef.id };
+
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    console.error("Error creating reservation: ", error);
+    return { success: false, error: error.message };
+  }
+}
+
+// Endpoint para recibir reservas desde el frontend
+app.post('/api/reservar', async (req, res) => {
+  const result = await createWebReservation(req.body);
+  if (result.success) {
+    res.json(result);
+  } else {
+    res.status(500).json(result);
   }
 });
 
