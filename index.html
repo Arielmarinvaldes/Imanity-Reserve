@@ -123,9 +123,22 @@
     <div id="resultado"></div>
   </div>
   <script>
-    // Bloquear números en el campo Nombre
+    // Bloquear números en campo nombre
     document.querySelector('input[name="guestName"]').addEventListener('keydown', function(e) {
       if (e.key >= '0' && e.key <= '9') {
+        e.preventDefault();
+      }
+    });
+
+    // Bloquear caracteres inválidos en "número de personas"
+    document.querySelector('input[name="partySize"]').addEventListener('keydown', function(e) {
+      // Permitir solo números y teclas de control
+      if (!/^\d$/.test(e.key) && 
+          e.key !== 'Backspace' && 
+          e.key !== 'Delete' && 
+          e.key !== 'ArrowLeft' && 
+          e.key !== 'ArrowRight' && 
+          e.key !== 'Tab') {
         e.preventDefault();
       }
     });
@@ -139,16 +152,39 @@
       const inputs = form.querySelectorAll('input');
       inputs.forEach(input => input.classList.remove('error'));
 
-      // Validar nombre solo letras y espacios
+      // Validaciones
       const nombre = form.guestName.value.trim();
-      if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(nombre)) {
-        mostrarError('guestName', '❌ El nombre solo puede contener letras y espacios.');
+      if (
+        nombre.length < 2 || 
+        nombre.length > 40 ||
+        !/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(nombre)
+      ) {
+        mostrarError('guestName', '❌ El nombre debe tener entre 2 y 40 letras y solo contener letras y espacios.');
         return;
       }
 
-      // Validar teléfono
-      if (!form.guestPhone.value.trim()) {
-        mostrarError('guestPhone', '❌ Debes ingresar tu número de teléfono.');
+      const partySize = form.partySize.value.trim();
+      if (partySize === '' || isNaN(partySize) || partySize < 1 || partySize > 30) {
+        mostrarError('partySize', '❌ El número de personas debe ser un número entre 1 y 30.');
+        return;
+      }
+
+      const fecha = form.reservationDateTime.value;
+      if (!fecha) {
+        mostrarError('reservationDateTime', '❌ Debes ingresar una fecha y hora.');
+        return;
+      } else {
+        const dateObj = new Date(fecha);
+        const now = new Date();
+        if (isNaN(dateObj.getTime()) || dateObj < now) {
+          mostrarError('reservationDateTime', '❌ La fecha y hora deben ser futuras.');
+          return;
+        }
+      }
+
+      const telefono = form.guestPhone.value.trim();
+      if (!/^\d{7,15}$/.test(telefono)) {
+        mostrarError('guestPhone', '❌ El teléfono debe tener entre 7 y 15 dígitos, solo números.');
         return;
       }
 
