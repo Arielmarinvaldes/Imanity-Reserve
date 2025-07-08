@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reserva Restaurante</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
   <style>
@@ -13,6 +14,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 1rem;
     }
     .container {
       background: #fff;
@@ -26,12 +28,12 @@
       text-align: center;
       font-weight: 700;
       color: #2d3748;
-      margin-bottom: 1.5rem;
+      margin-bottom: 2rem;
       letter-spacing: 1px;
     }
     form label {
       display: block;
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
       color: #4a5568;
       font-size: 1rem;
     }
@@ -45,13 +47,18 @@
       font-size: 1rem;
       margin-top: 0.3rem;
       background: #f7fafc;
-      transition: border 0.2s;
+      transition: border 0.2s, box-shadow 0.2s;
     }
     input[type="text"]:focus,
     input[type="number"]:focus,
     input[type="datetime-local"]:focus {
       border-color: #7f9cf5;
+      box-shadow: 0 0 0 3px rgba(127, 156, 245, 0.2);
       outline: none;
+    }
+    input.error {
+      border-color: #dc2626;
+      background-color: #fef2f2;
     }
     input[type="checkbox"] {
       margin-right: 0.5rem;
@@ -81,16 +88,21 @@
       font-weight: 500;
       color: #38a169;
       min-height: 24px;
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+    #resultado.visible {
+      opacity: 1;
     }
     #resultado.error {
-      color: #e53e3e;
+      color: #dc2626;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Reserva</h1>
-    <form id="reservaForm">
+    <form id="reservaForm" novalidate>
       <label>Nombre:
         <input type="text" name="guestName" required placeholder="Tu nombre completo">
       </label>
@@ -123,26 +135,20 @@
       const form = e.target;
       const resultadoDiv = document.getElementById('resultado');
 
+      // Resetear estados visuales
+      const inputs = form.querySelectorAll('input');
+      inputs.forEach(input => input.classList.remove('error'));
+
       // Validar nombre solo letras y espacios
       const nombre = form.guestName.value.trim();
       if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(nombre)) {
-        resultadoDiv.className = 'error';
-        resultadoDiv.innerText = '❌ El nombre solo puede contener letras y espacios.';
-        setTimeout(() => {
-          resultadoDiv.innerText = '';
-          resultadoDiv.className = '';
-        }, 2000);
+        mostrarError('guestName', '❌ El nombre solo puede contener letras y espacios.');
         return;
       }
 
       // Validar teléfono
       if (!form.guestPhone.value.trim()) {
-        resultadoDiv.className = 'error';
-        resultadoDiv.innerText = '❌ Debes ingresar tu número de teléfono.';
-        setTimeout(() => {
-          resultadoDiv.innerText = '';
-          resultadoDiv.className = '';
-        }, 2000);
+        mostrarError('guestPhone', '❌ Debes ingresar tu número de teléfono.');
         return;
       }
 
@@ -163,21 +169,33 @@
       const result = await res.json();
 
       if(result.success) {
-        resultadoDiv.className = '';
+        resultadoDiv.className = 'visible';
         resultadoDiv.innerText = '✅ Reserva creada';
         form.reset();
 
         setTimeout(() => {
-          resultadoDiv.innerText = '';
           resultadoDiv.className = '';
+          resultadoDiv.innerText = '';
         }, 2000);
       } else {
-        resultadoDiv.className = 'error';
+        resultadoDiv.className = 'error visible';
         resultadoDiv.innerText = '❌ Error: ' + result.error;
 
         setTimeout(() => {
-          resultadoDiv.innerText = '';
           resultadoDiv.className = '';
+          resultadoDiv.innerText = '';
+        }, 2000);
+      }
+
+      function mostrarError(inputName, message) {
+        const input = form.querySelector(`[name="${inputName}"]`);
+        input.classList.add('error');
+        resultadoDiv.className = 'error visible';
+        resultadoDiv.innerText = message;
+        setTimeout(() => {
+          resultadoDiv.className = '';
+          resultadoDiv.innerText = '';
+          input.classList.remove('error');
         }, 2000);
       }
     };
