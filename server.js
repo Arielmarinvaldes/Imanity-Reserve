@@ -109,9 +109,14 @@ async function createWebReservation(restaurantId, reservationData) {
   }
 }
 
-// Endpoint para recibir reservas desde el frontend
 app.post('/api/reservar', async (req, res) => {
-  const result = await createWebReservation(req.body);
+  const { restaurantId, ...reservationData } = req.body;
+
+  if (!restaurantId) {
+    return res.status(400).json({ success: false, error: "Restaurant ID is missing." });
+  }
+
+  const result = await createWebReservation(restaurantId, reservationData);
   if (result.success) {
     res.json(result);
   } else {
