@@ -41,8 +41,17 @@ async function createWebReservation(reservationData) {
     let { guestName, partySize, reservationDateTime, guestPhone, needsHighChair } = reservationData;
 
     // Validar campos obligatorios
-    if (!guestName || !partySize || !reservationDateTime || !guestPhone) {
-      throw new Error("Todos los campos son obligatorios excepto la trona para bebé.");
+    if (!guestName) {
+      throw new Error("El nombre es obligatorio.");
+    }
+    if (!partySize) {
+      throw new Error("El número de personas es obligatorio.");
+    }
+    if (!reservationDateTime) {
+      throw new Error("La fecha de reserva es obligatoria.");
+    }
+    if (!guestPhone) {
+      throw new Error("El teléfono es obligatorio.");
     }
 
     // Validar longitud y formato del nombre (solo letras y espacios, 2-40 caracteres)

@@ -95,7 +95,7 @@
         <input type="text" name="guestName" required placeholder="Tu nombre completo">
       </label>
       <label>Número de personas:
-        <input type="number" name="partySize" required min="1" max="20" placeholder="Ej: 2">
+        <input type="number" name="partySize" required min="1" max="30" placeholder="Ej: 2">
       </label>
       <label>Fecha y hora:
         <input type="datetime-local" name="reservationDateTime" required>
@@ -121,20 +121,33 @@
         guestPhone: form.guestPhone.value,
         needsHighChair: form.needsHighChair.checked
       };
+
       const res = await fetch('/api/reservar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
+
       const result = await res.json();
       const resultadoDiv = document.getElementById('resultado');
+
       if(result.success) {
         resultadoDiv.className = '';
         resultadoDiv.innerText = '✅ Reserva creada';
         form.reset();
+
+        setTimeout(() => {
+          resultadoDiv.innerText = '';
+          resultadoDiv.className = '';
+        }, 2000);
       } else {
         resultadoDiv.className = 'error';
         resultadoDiv.innerText = '❌ Error: ' + result.error;
+
+        setTimeout(() => {
+          resultadoDiv.innerText = '';
+          resultadoDiv.className = '';
+        }, 2000);
       }
     };
   </script>
