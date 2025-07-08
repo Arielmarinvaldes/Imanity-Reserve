@@ -25,17 +25,6 @@ app.use(rateLimit({
 app.use(cors({ origin: 'https://imanity-reserve.onrender.com' }));
 app.use(express.json());
 
-// Middleware de API Key
-app.use((req, res, next) => {
-  console.log("🔑 API KEY RECIBIDA:", req.headers['x-api-key']);
-  console.log("🔑 API KEY ESPERADA (desde env):", process.env.API_KEY_SECRET);
-  const apiKey = req.headers['x-api-key'];
-  if (!apiKey || apiKey !== process.env.API_KEY_SECRET) {
-    return res.status(403).json({ success: false, error: "Forbidden" });
-  }
-  next();
-});
-
 // Sirve index.html en la raíz
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
