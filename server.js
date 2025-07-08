@@ -76,19 +76,25 @@ async function createWebReservation(restaurantId, reservationData) {
       .split(' ')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
-    
-    // --- TIME VALIDATION ---
-    const reservationDate = new Date(reservationDateTime);
-    const hours = reservationDate.getHours();
-    const minutes = reservationDate.getMinutes();
+
+    // --- TIME AND DAY VALIDATION ---
+    const dayOfWeek = dateObj.getDay();
+    if (dayOfWeek === 2) {
+      const errorMsg = "El restaurante está cerrado los martes. Por favor, elige otro día.";
+      console.error(`Error: ${errorMsg}`);
+      return { success: false, error: errorMsg };
+    }
+
+    const hours = dateObj.getHours();
+    const minutes = dateObj.getMinutes();
     const timeInMinutes = hours * 60 + minutes;
     const startInMinutes = 12 * 60; // 12:00
     const endInMinutes = 23 * 60 + 30; // 23:30
 
     if (timeInMinutes < startInMinutes || timeInMinutes > endInMinutes) {
-        const errorMsg = "Reservation time must be between 12:00 and 23:30.";
-        console.error(`Error: ${errorMsg}`);
-        return { success: false, error: errorMsg };
+      const errorMsg = "El horario de reservas es de 12:00 a 23:30.";
+      console.error(`Error: ${errorMsg}`);
+      return { success: false, error: errorMsg };
     }
     // -------------------------
 
@@ -113,6 +119,7 @@ async function createWebReservation(restaurantId, reservationData) {
     return { success: false, error: "Error al crear la reserva. Inténtalo de nuevo." };
   }
 }
+
 
 app.post('/api/reservar', async (req, res) => {
   const { restaurantId, ...reservationData } = req.body;
