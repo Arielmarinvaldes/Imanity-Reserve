@@ -84,7 +84,8 @@ async function createWebReservation(restaurantId, reservationData) {
       guestPhone: guestPhone || "",
       needsHighChair: needsHighChair || false,
       status: "Upcoming",
-      tableId: ""
+      tableId: "",
+      source: "web"
     };
 
     const reservationPath = `restaurants/${restaurantId}/reservations`;
