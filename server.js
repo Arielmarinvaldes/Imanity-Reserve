@@ -76,6 +76,21 @@ async function createWebReservation(restaurantId, reservationData) {
       .split(' ')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
+    
+    // --- TIME VALIDATION ---
+    const reservationDate = new Date(reservationDateTime);
+    const hours = reservationDate.getHours();
+    const minutes = reservationDate.getMinutes();
+    const timeInMinutes = hours * 60 + minutes;
+    const startInMinutes = 12 * 60; // 12:00
+    const endInMinutes = 23 * 60 + 30; // 23:30
+
+    if (timeInMinutes < startInMinutes || timeInMinutes > endInMinutes) {
+        const errorMsg = "Reservation time must be between 12:00 and 23:30.";
+        console.error(`Error: ${errorMsg}`);
+        return { success: false, error: errorMsg };
+    }
+    // -------------------------
 
     const newReservation = {
       guestName,
