@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Reserva Restaurante</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
   <style>
     body {
       background: linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%);
@@ -81,22 +81,6 @@
     button:hover {
       background: linear-gradient(90deg, #4fd1c5 0%, #7f9cf5 100%);
     }
-    #resultado {
-      margin-top: 1.5rem;
-      text-align: center;
-      font-size: 1.05rem;
-      font-weight: 500;
-      color: #38a169;
-      min-height: 24px;
-      opacity: 0;
-      transition: opacity 0.5s;
-    }
-    #resultado.visible {
-      opacity: 1;
-    }
-    #resultado.error {
-      color: #dc2626;
-    }
   </style>
 </head>
 <body>
@@ -104,24 +88,24 @@
     <h1>Reserva</h1>
     <form id="reservaForm" novalidate>
       <label>Nombre:
-        <input type="text" name="guestName" required placeholder="Tu nombre completo">
+        <input type="text" name="guestName" required placeholder="Tu nombre completo" />
       </label>
       <label>Número de personas:
-        <input type="number" name="partySize" required min="1" max="30" placeholder="Ej: 2">
+        <input type="number" name="partySize" required min="1" max="30" placeholder="Ej: 2" />
       </label>
       <label>Fecha y hora:
-        <input type="datetime-local" name="reservationDateTime" required>
+        <input type="datetime-local" name="reservationDateTime" required />
       </label>
       <label>Teléfono:
-        <input type="text" name="guestPhone" required placeholder="Tu teléfono">
+        <input type="text" name="guestPhone" required placeholder="Tu teléfono" />
       </label>
       <label>
-        <input type="checkbox" name="needsHighChair"> Trona para bebé
+        <input type="checkbox" name="needsHighChair" /> Trona para bebé
       </label>
       <button type="submit">Reservar</button>
     </form>
-    <div id="resultado"></div>
   </div>
+
   <script>
     // Bloquear números en campo nombre
     document.querySelector('input[name="guestName"]').addEventListener('keydown', function(e) {
@@ -132,7 +116,6 @@
 
     // Bloquear caracteres inválidos en "número de personas"
     document.querySelector('input[name="partySize"]').addEventListener('keydown', function(e) {
-      // Permitir solo números y teclas de control
       if (!/^\d$/.test(e.key) && 
           e.key !== 'Backspace' && 
           e.key !== 'Delete' && 
@@ -143,19 +126,32 @@
       }
     });
 
+    // Bloquear martes al elegir fecha
+    document.querySelector('input[name="reservationDateTime"]').addEventListener('change', function(e) {
+      const dateStr = e.target.value;
+      if (!dateStr) return;
+
+      const date = new Date(dateStr);
+      const day = date.getDay();
+
+      if (day === 2) {
+        alert("❌ El restaurante está cerrado los martes. Por favor, elige otro día.");
+        e.target.value = "";
+      }
+    });
+
     document.getElementById('reservaForm').onsubmit = async function(e) {
       e.preventDefault();
       const form = e.target;
-      const resultadoDiv = document.getElementById('resultado');
 
-      // Resetear estados visuales
+      // Quitar errores previos
       const inputs = form.querySelectorAll('input');
       inputs.forEach(input => input.classList.remove('error'));
 
-      // Validaciones
+      // Validar nombre
       const nombre = form.guestName.value.trim();
       if (
-        nombre.length < 2 || 
+        nombre.length < 2 ||
         nombre.length > 40 ||
         !/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(nombre)
       ) {
@@ -163,12 +159,14 @@
         return;
       }
 
+      // Validar número de personas
       const partySize = form.partySize.value.trim();
       if (partySize === '' || isNaN(partySize) || partySize < 1 || partySize > 30) {
         mostrarError('partySize', '❌ El número de personas debe ser un número entre 1 y 30.');
         return;
       }
 
+      // Validar fecha
       const fecha = form.reservationDateTime.value;
       if (!fecha) {
         mostrarError('reservationDateTime', '❌ Debes ingresar una fecha y hora.');
@@ -180,8 +178,14 @@
           mostrarError('reservationDateTime', '❌ La fecha y hora deben ser futuras.');
           return;
         }
+        const dayOfWeek = dateObj.getDay();
+        if (dayOfWeek === 2) {
+          mostrarError('reservationDateTime', '❌ El restaurante está cerrado los martes.');
+          return;
+        }
       }
 
+      // Validar teléfono
       const telefono = form.guestPhone.value.trim();
       if (!/^\d{7,15}$/.test(telefono)) {
         mostrarError('guestPhone', '❌ El teléfono debe tener entre 7 y 15 dígitos, solo números.');
@@ -207,37 +211,20 @@
 
       const result = await res.json();
 
-      if(result.success) {
-        resultadoDiv.className = 'visible';
-        resultadoDiv.innerText = '✅ Reserva creada';
+      if (result.success) {
+        alert('✅ Reserva creada correctamente.');
         form.reset();
-
-        setTimeout(() => {
-          resultadoDiv.className = '';
-          resultadoDiv.innerText = '';
-        }, 2000);
       } else {
-        resultadoDiv.className = 'error visible';
-        resultadoDiv.innerText = '❌ Error: ' + result.error;
-
-        setTimeout(() => {
-          resultadoDiv.className = '';
-          resultadoDiv.innerText = '';
-        }, 2000);
-      }
-
-      function mostrarError(inputName, message) {
-        const input = form.querySelector(`[name="${inputName}"]`);
-        input.classList.add('error');
-        resultadoDiv.className = 'error visible';
-        resultadoDiv.innerText = message;
-        setTimeout(() => {
-          resultadoDiv.className = '';
-          resultadoDiv.innerText = '';
-          input.classList.remove('error');
-        }, 2000);
+        alert('❌ Error: ' + result.error);
       }
     };
+
+    function mostrarError(inputName, message) {
+      const input = document.querySelector(`[name="${inputName}"]`);
+      input.classList.add('error');
+      alert(message);
+      input.classList.remove('error');
+    }
   </script>
 </body>
 </html>
