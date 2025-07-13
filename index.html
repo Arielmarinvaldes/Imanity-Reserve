@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reserva Restaurante</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
   <style>
     body {
       background: linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%);
@@ -15,7 +15,6 @@
       align-items: center;
       justify-content: center;
       padding: 1rem;
-      position: relative;
     }
     .container {
       position: relative;
@@ -99,60 +98,66 @@
     #resultado.error {
       color: #dc2626;
     }
-
-    /* Botón volver atrás dentro del container */
     .back-btn {
       position: absolute;
       top: 10px;
       left: 10px;
-      width: 35px;
-      height: 35px;
-      background: rgba(0, 0, 0, 0.15);
-      color: #2d3748;
+      width: 32px;
+      height: 32px;
+      background: rgba(0, 0, 0, 0.3);
+      color: #fff;
       border: none;
-      border-radius: 4px;
-      font-weight: bold;
+      border-radius: 6px;
       font-size: 18px;
+      font-weight: bold;
+      text-align: center;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      line-height: 32px;
       transition: background 0.3s;
-      text-decoration: none;
     }
     .back-btn:hover {
-      background: rgba(0, 0, 0, 0.25);
+      background: rgba(0, 0, 0, 0.5);
     }
   </style>
 </head>
 <body>
-
   <div class="container">
-    <button type="button" class="back-btn" onclick="window.history.back()">←</button>
-
+    <button type="button" class="back-btn" onclick="goBack()">←</button>
     <h1>Reserva</h1>
     <form id="reservaForm" novalidate>
       <label>Nombre:
-        <input type="text" name="guestName" required placeholder="Tu nombre completo" />
+        <input type="text" name="guestName" required placeholder="Tu nombre completo">
       </label>
       <label>Número de personas:
-        <input type="number" name="partySize" required min="1" max="30" placeholder="Ej: 2" />
+        <input type="number" name="partySize" required min="1" max="30" placeholder="Ej: 2">
       </label>
       <label>Fecha y hora:
-        <input type="datetime-local" name="reservationDateTime" required />
+        <input type="datetime-local" name="reservationDateTime" required>
       </label>
       <label>Teléfono:
-        <input type="text" name="guestPhone" required placeholder="Tu teléfono" />
+        <input type="text" name="guestPhone" required placeholder="Tu teléfono">
       </label>
       <label>
-        <input type="checkbox" name="needsHighChair" /> Trona para bebé
+        <input type="checkbox" name="needsHighChair"> Trona para bebé
       </label>
-      <button type="submit">Reservar</button>
+      <button type="submit" id="submitBtn">Reservar</button>
     </form>
     <div id="resultado"></div>
   </div>
-
   <script>
+    function goBack() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const fromPage = urlParams.get("from");
+
+      if (fromPage) {
+        window.location.href = fromPage;
+      } else if (document.referrer) {
+        window.location.href = document.referrer;
+      } else {
+        window.location.href = "https://studio--gourmet-canvas-lmaux.us-central1.hosted.app/ ";
+      }
+    }
+
     document.querySelector('input[name="guestName"]').addEventListener('keydown', function(e) {
       if (e.key >= '0' && e.key <= '9') {
         e.preventDefault();
@@ -160,11 +165,11 @@
     });
 
     document.querySelector('input[name="partySize"]').addEventListener('keydown', function(e) {
-      if (!/^\d$/.test(e.key) &&
-          e.key !== 'Backspace' &&
-          e.key !== 'Delete' &&
-          e.key !== 'ArrowLeft' &&
-          e.key !== 'ArrowRight' &&
+      if (!/^\d$/.test(e.key) && 
+          e.key !== 'Backspace' && 
+          e.key !== 'Delete' && 
+          e.key !== 'ArrowLeft' && 
+          e.key !== 'ArrowRight' && 
           e.key !== 'Tab') {
         e.preventDefault();
       }
@@ -186,7 +191,14 @@
     document.getElementById('reservaForm').onsubmit = async function(e) {
       e.preventDefault();
       const form = e.target;
+      const submitBtn = document.getElementById("submitBtn");
       const resultadoDiv = document.getElementById('resultado');
+
+      submitBtn.disabled = true;
+      setTimeout(() => {
+        submitBtn.disabled = false;
+      }, 2000);
+
       const inputs = form.querySelectorAll('input');
       inputs.forEach(input => input.classList.remove('error'));
 
